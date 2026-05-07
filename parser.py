@@ -47,7 +47,7 @@ def parse_zone(line: str, number: int) -> Zone:
 
     if zone_type not in ("hub", "start_hub", "end_hub"):
         raise ParserError(f"Invalid zone input")
-    
+
     metadata: dict[str, str] = {}
     if "[" in zone_info:
         if not "]" in zone_info:
@@ -56,7 +56,7 @@ def parse_zone(line: str, number: int) -> Zone:
         meta_info = zone_info[start:]
         zone_info = zone_info[:start].strip()
         metadata = parse_metadata(meta_info, number)
-    
+
     parameters = zone_info.split()
     if len(parameters) != 3:
         raise ParserError(f"Invalid parameters. Format must be: name (x) (y)")
@@ -67,7 +67,7 @@ def parse_zone(line: str, number: int) -> Zone:
         y = int(ystr)
     except ValueError:
         raise ParserError(f"(x) and (y) parameters must be integers.")
-    
+
     # parse optional metadata
     color = metadata.get("color", None)
     drones_number = metadata.get("max_drones", "1")
@@ -77,7 +77,7 @@ def parse_zone(line: str, number: int) -> Zone:
         raise ParserError(f"Error. max_drones must be an integer.")
     if max_drones <= 0:
         raise ParserError(f"Error. max_drones must be a positive integer.")
-    
+
     return Zone(
         name=name,
         x=x,
@@ -88,4 +88,3 @@ def parse_zone(line: str, number: int) -> Zone:
         is_start=(zone_type == "start_hub"),
         is_end=(zone_type == "end_hub")
         )
-    
