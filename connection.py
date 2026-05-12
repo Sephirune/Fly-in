@@ -17,4 +17,4 @@ class Connection:
             """Bool to check if the connection is valid"""
             return zone == self.zone1 or zone == self.zone2
 
-        
+        def return_other_zone(self, zone1: )
