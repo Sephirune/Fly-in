@@ -3,6 +3,7 @@ from zone import Zone
 from graph import GraphModel
 from connection import Connection
 
+
 class ParserError(Exception):
     """Raised when the parser encounters an error in the input data."""
     pass
@@ -22,7 +23,7 @@ def pase_drone(line: str, number: int) -> int:
     return value
 
 
-def parse_metadata(metadata: str, number: int) -> dict[str,str]:
+def parse_metadata(metadata: str, number: int) -> dict[str, str]:
     """Parse metadata input"""
     meta: dict[str, str] = {}
     data = metadata.strip("[]").strip()
@@ -46,11 +47,11 @@ def parse_zone(line: str, number: int) -> Zone:
     zone_info = zone_info.strip()
 
     if zone_type not in ("hub", "start_hub", "end_hub"):
-        raise ParserError(f"Invalid zone input")
+        raise ParserError("Invalid zone input")
 
     metadata: dict[str, str] = {}
     if "[" in zone_info:
-        if not "]" in zone_info:
+        if "]" not in zone_info:
             raise ParserError(f"Invalid metadata input in line: {number}")
         start = zone_info.index("[") # index returns the first ocurrence of an element
         meta_info = zone_info[start:]
@@ -59,14 +60,14 @@ def parse_zone(line: str, number: int) -> Zone:
 
     parameters = zone_info.split()
     if len(parameters) != 3:
-        raise ParserError(f"Invalid parameters. Format must be: name (x) (y)")
+        raise ParserError("Invalid parameters. Format must be: name (x) (y)")
     name, xstr, ystr = parameters
 
     try:
         x = int(xstr)
         y = int(ystr)
     except ValueError:
-        raise ParserError(f"(x) and (y) parameters must be integers.")
+        raise ParserError("(x) and (y) parameters must be integers.")
 
     # parse optional metadata
     color = metadata.get("color", None)
@@ -74,9 +75,9 @@ def parse_zone(line: str, number: int) -> Zone:
     try:
         max_drones = int(drones_number)
     except ValueError:
-        raise ParserError(f"Error. max_drones must be an integer.")
+        raise ParserError("Error. max_drones must be an integer.")
     if max_drones <= 0:
-        raise ParserError(f"Error. max_drones must be a positive integer.")
+        raise ParserError("Error. max_drones must be a positive integer.")
 
     return Zone(
         name=name,
