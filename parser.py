@@ -1,6 +1,6 @@
 from typing import Tuple
-from zone import Zone
-from graph import GraphModel
+from zones import Zone
+from graph import Graph
 from connection import Connection
 
 class ParserError(Exception):
@@ -52,10 +52,13 @@ def parse_zone(line: str, number: int) -> Zone:
     if "[" in zone_info:
         if not "]" in zone_info:
             raise ParserError(f"Invalid metadata input in line: {number}")
-        start = zone_info.index("[") # index returns the first ocurrence of an element
+        start = zone_info.index("[") # index() returns the first ocurrence of an element
         meta_info = zone_info[start:]
         zone_info = zone_info[:start].strip()
         metadata = parse_metadata(meta_info, number)
+    
+    if "-" in name or " " in name:
+        raise ParserError(f"zone names can't contain dashes or spaces.")
 
     parameters = zone_info.split()
     if len(parameters) != 3:
@@ -88,3 +91,14 @@ def parse_zone(line: str, number: int) -> Zone:
         is_start=(zone_type == "start_hub"),
         is_end=(zone_type == "end_hub")
         )
+
+
+def parse_file(file:str) -> Graph:
+    try:
+        with open(file, "r") as f:
+            line = f.readlines() # readlines() returns a list of lines
+    except OSError:
+        raise ParserError(f"Error opening file '{file}'.")
+    
+    if not line:
+        raise ParserError(f"Error: File is empty.")
