@@ -17,9 +17,13 @@ class Connection:
         """Bool to check if the connection is valid"""
         return zone == self.name1 or zone == self.name2
 
+<<<<<<< HEAD
     def __repr__(self) -> str:
         """Return string representation"""
         return(
             f"Connection({self.name1} <-> {self.name2}, "
             f"capacity={self.max_link_capacity})"
         )
+=======
+        def return_other_zone(self, zone1: )
+>>>>>>> 76c7a263a103d31eceb04e5888cb8a4626a17fa7
