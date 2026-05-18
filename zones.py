@@ -1,3 +1,6 @@
+from typing import Optional
+
+
 class ZoneType:
     """Valid types for zone class"""
     NORMAL = "normal"
@@ -28,3 +31,10 @@ class Zone:
         self.max_drones = max_drones
         self.is_start = is_start
         self.is_end = is_end
+
+    def __repr__(self) -> str:
+        """Return string representation of Zone."""
+        return (
+            f"Zone(name={self.name}, type={self.zone_type}, "
+            f"pos=({self.x},{self.y}), max_drones={self.max_drones})"
+        )

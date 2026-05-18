@@ -1,12 +1,7 @@
-from typing import Tuple
 from zones import Zone
 from graph import Graph
 from connection import Connection
-
-
-class ParserError(Exception):
-    """Raised when the parser encounters an error in the input data."""
-    pass
+from parse_error import ParserError
 
 
 def pase_drone(line: str, number: int) -> int:
@@ -57,14 +52,14 @@ def parse_zone(line: str, number: int) -> Zone:
         meta_info = zone_info[start:]
         zone_info = zone_info[:start].strip()
         metadata = parse_metadata(meta_info, number)
-    
-    if "-" in name or " " in name:
-        raise ParserError(f"zone names can't contain dashes or spaces.")
 
     parameters = zone_info.split()
+    name, xstr, ystr = parameters
+    if "-" in name or " " in name:
+        raise ParserError("Error: zone names can't contain dashes or spaces.")
+
     if len(parameters) != 3:
         raise ParserError("Invalid parameters. Format must be: name (x) (y)")
-    name, xstr, ystr = parameters
 
     try:
         x = int(xstr)
@@ -72,7 +67,6 @@ def parse_zone(line: str, number: int) -> Zone:
     except ValueError:
         raise ParserError("(x) and (y) parameters must be integers.")
 
-    # parse optional metadata
     color = metadata.get("color", None)
     drones_number = metadata.get("max_drones", "1")
     try:
@@ -94,12 +88,81 @@ def parse_zone(line: str, number: int) -> Zone:
         )
 
 
-def parse_file(file:str) -> Graph:
+def parse_connection(line: str, number: int, graph: Graph) -> None:
+    """Parse a connection line and add it to the graph."""
+    parsed = line.strip()
+    if ":" not in parsed:
+        raise ParserError(f"Line {number}: missing ':' in connection definition")
+    connection_type, connection_info = parsed.split(":", 1)
+    connection_type = connection_type.strip()
+    connection_info = connection_info.strip()
+
+    if connection_type != "connection":
+        raise ParserError("Invalid zone input")
+
+    metadata: dict[str, str] = {}
+    if "[" in connection_info:
+        if "]" not in connection_info:
+            raise ParserError(f"Invalid metadata input in line: {number}")
+        start = connection_info.index("[")
+        meta_info = connection_info[start:]
+        connection_info = connection_info[:start].strip()
+        metadata = parse_metadata(meta_info, number)
+
+    parameters = connection_info.split("-")
+    name1, name2 = parameters[0].strip(), parameters[1].strip()
+    if len(parameters) != 2:
+        raise ParserError(f"Error. Line: {number} must have exactly two zones.")
+
+    if graph.get_zone(name1) is None:
+        raise ParserError(f"Error: line: {number} is an unkown zone.")
+    if graph.get_zone(name2) is None:
+        raise ParserError(f"Error: line: {number} is an unkown zone.")
+
+    try:
+        max_link_capacity = int(metadata.get("max_link_capacity", "1"))
+    except ParserError:
+        raise ParserError(f"Error: line {number} must be a positive integer.")
+    if max_link_capacity <= 0:
+        raise ParserError(f"Error: line {number} must be a positive integer.")
+
+    graph.add_connection(Connection(
+        name1=name1,
+        name2=name2,
+        max_link_capacity=max_link_capacity,
+    ))
+
+
+def parse_file(file: str) -> Graph:
+    """Parse input file and return a Graph object."""
     try:
         with open(file, "r") as f:
-            line = f.readlines() # readlines() returns a list of lines
+            lines = f.readlines()
     except OSError:
         raise ParserError(f"Error opening file '{file}'.")
-    
-    if not line:
-        raise ParserError(f"Error: File is empty.")
+
+    if not lines:
+        raise ParserError("Error: File is empty.")
+
+    graph = Graph(pase_drone(lines[0], 1))
+
+    for number, line in enumerate(lines[1:], start=2):
+        stripped = line.strip()
+
+        if not stripped or stripped.startswith("#"):
+            continue
+
+        if stripped.startswith(("hub:", "start_hub:", "end_hub:")):
+            zone = parse_zone(stripped, number)
+            graph.add_zone(zone)
+
+        elif stripped.startswith("connection:"):
+            parse_connection(stripped, number, graph)
+
+        else:
+            raise ParserError(
+                f"Line {number}: unrecognized line '{stripped}'"
+            )
+
+    graph.validate()
+    return graph
