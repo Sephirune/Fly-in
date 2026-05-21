@@ -76,11 +76,13 @@ def parse_zone(line: str, number: int) -> Zone:
     if max_drones <= 0:
         raise ParserError("Error. max_drones must be a positive integer.")
 
+    zone_type_str = metadata.get("zone", "normal")
+    
     return Zone(
         name=name,
         x=x,
         y=y,
-        zone_type=zone_type,
+        zone_type=zone_type_str,
         color=color,
         max_drones=max_drones,
         is_start=(zone_type == "start_hub"),

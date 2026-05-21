@@ -15,10 +15,10 @@ class Graph:
         self.connection_keys: set[tuple[str, str]] = set()
         self.adjacency: dict[str, list[Connection]] = {}
 
-    def get_zone(self, name: str) -> Optional[None]:
+    def get_zone(self, name: str) -> Optional[Zone]:
         """Get the zone name"""
         return self.zones.get(name)
-    
+
     def add_zone(self, zone: Zone) -> None:
         if zone.name in self.zones:
             raise ParserError(f"Error: already existing zone detected.")
@@ -75,3 +75,9 @@ class Graph:
             raise ParserError("Error: No start defined.")
         if self.end is None:
             raise ParserError("Error: No end defined.")
+    
+    def __repr__(self):
+        """Return string representation of the Graph."""
+        return (
+            f"Graph(zones={len(self.zones)}, connections={len(self.connections)}),"
+        )
