@@ -77,7 +77,7 @@ def parse_zone(line: str, number: int) -> Zone:
         raise ParserError("Error. max_drones must be a positive integer.")
 
     zone_type_str = metadata.get("zone", "normal")
-    
+
     return Zone(
         name=name,
         x=x,
