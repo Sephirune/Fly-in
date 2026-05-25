@@ -5,7 +5,7 @@ from pathfinding import find_all_paths
 from simulation import Simulation
 
 try:
-    graph = parse_file("example.map")
+    graph = parse_file("generated_graph.map")
     print(graph)
     for zone in graph.zones.values():
         print(zone)
