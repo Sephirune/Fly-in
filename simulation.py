@@ -37,30 +37,68 @@ class Simulation:
             drone = Drone(path_assigned=path, identifier=f"D{i + 1}")
             self.drones.append(drone)
 
-    def validate_movement(self, drone: Drone) -> bool:
+    def validate_movement(
+        self,
+        drone: Drone,
+        zone_occupancy: dict[str, int],
+        connection_usage: dict[tuple[str, str], int]
+    ) -> bool:
         """Check if a drone can move to the next zone"""
-        if drone.get_next_zone is not None:
-            zone_name = drone.get_next_zone
-            next_zone = self.graph.get_zone(zone_name)
+        next_zone_name = drone.get_next_zone
+        if next_zone_name is None:
+            return False
 
-            drones_in_zone = 0
-            for i in self.drones:
-                if i.current_zone == next_zone:
-                    drones_in_zone += 1
-                if drones_in_zone >= next_zone.max_drones:
-                    return False
+        next_zone = self.graph.get_zone(next_zone_name)
+        if next_zone is None:
+            return False
 
-            connection = self.graph.get_connection(drone.current_zone, zone_name)
-            if connection is not None:
-                drones_flying = 0
-                for j in self.drones:
-                    if j.current_zone == drone.current_zone and j.get_next_zone == next_zone:
-                        drones_flying += 1
-                    if drones_flying >= connection.max_link_capacity:
-                        return False
+        if zone_occupancy.get(next_zone_name, 0) >= next_zone.max_drones:
+            return False
 
-            return True
+        connection = self.graph.get_connection(drone.current_zone, next_zone_name)
+        if connection is None:
+            return False
 
-    def simulate_turn(self) -> str:
+        connection_key = tuple(sorted([drone.current_zone, next_zone_name]))
+        if connection_usage.get(connection_key, 0) >= connection.max_link_capacity:
+            return False
+
+        return True
+
+    def simulate_turn(self) -> list:
         """Simulates a turn"""
-        movements = {}
+        movements: list[str] = []
+        zone_occupancy: dict[str, int] = {
+            zone_name: sum(1 for d in self.drones if d.current_zone == zone_name)
+            for zone_name in self.graph.zones
+        }
+        connection_usage: dict[tuple[str, str], int] = {}
+
+        for drone in self.drones:
+            if drone.has_ended:
+                continue
+
+            if self.validate_movement(drone, zone_occupancy, connection_usage):
+                current_zone = drone.current_zone
+                next_zone = drone.get_next_zone
+                connection_key = tuple(sorted([current_zone, next_zone]))
+
+                drone.move_drone()
+                movements.append(f"{drone.identifier}-{drone.current_zone}")
+
+                zone_occupancy[current_zone] -= 1
+                zone_occupancy[drone.current_zone] = zone_occupancy.get(drone.current_zone, 0) + 1
+                connection_usage[connection_key] = connection_usage.get(connection_key, 0) + 1
+
+        self.current_turn += 1
+        self.mov_history.extend(movements)
+        return movements
+
+    def loop_turn(self) -> int:
+        """Runs turns in a loop until all drones have arrived"""
+        while any(not drone.has_ended for drone in self.drones):
+            movements = self.simulate_turn()
+            if not movements:
+                break
+
+        return self.current_turn

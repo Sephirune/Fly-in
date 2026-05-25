@@ -75,7 +75,7 @@ class Graph:
             raise ParserError("Error: No start defined.")
         if self.end is None:
             raise ParserError("Error: No end defined.")
-    
+
     def __repr__(self):
         """Return string representation of the Graph."""
         return (
