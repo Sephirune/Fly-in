@@ -76,7 +76,7 @@ class Simulation:
             zone_name: sum(
                 1 for d in self.drones
                 if d.current_zone == zone_name
-                and not d.has_ended  # excluir drones que ya llegaron
+                and not d.has_ended
                 and not self.graph.zones[zone_name].is_start
             )
             for zone_name in self.graph.zones
@@ -85,23 +85,22 @@ class Simulation:
         for drone in self.drones:
             if drone.has_ended:
                 continue
-
             if self.validate_movement(drone, zone_occupancy, connection_usage):
                 current_zone = drone.current_zone
                 next_zone = drone.get_next_zone
                 connection_key = tuple(sorted([current_zone, next_zone]))
-
                 drone.move_drone()
-                movements.append(f"{drone.identifier}-{drone.current_zone}")
+
+                drone_str = Colors.drone_color(drone.identifier)
+                zone_str = Colors.color_output(self.graph.get_zone(drone.current_zone))
+                movements.append(f"{drone_str}-{zone_str}")
 
                 zone_occupancy[current_zone] -= 1
                 zone_occupancy[drone.current_zone] = zone_occupancy.get(drone.current_zone, 0) + 1
                 connection_usage[connection_key] = connection_usage.get(connection_key, 0) + 1
 
         self.current_turn += 1
-        drone_str = Colors.drone_color(drone.identifier)
-        zone_str = Colors.color_output(self.graph.get_zone(drone.current_zone))
-        movements.append(f"{drone_str}-{zone_str}")
+        self.mov_history.append(" ".join(movements))
         return movements
 
     def loop_turn(self) -> int:
