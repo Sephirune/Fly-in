@@ -9,10 +9,10 @@ install: venv
 	$(PIP) install --upgrade pip
 
 run: venv
-	$(PYTHON) $(MAIN) $(CONFIG)
+	$(PYTHON) $(MAIN) $(MAP)
 
 debug: venv
-	$(PYTHON) -m pdb $(MAIN) $(CONFIG)
+	$(PYTHON) -m pdb $(MAIN) $(MAP)
 
 lint: venv
 	$(PIP) install flake8 mypy
