@@ -1,26 +1,16 @@
 from fly_in_parser import parse_file
 from parse_error import ParserError
-from pathfinding import dijkstra
-from pathfinding import find_all_paths
 from simulation import Simulation
+import sys
 
 try:
-    graph = parse_file("example.map")
-    print(graph)
-    for zone in graph.zones.values():
-        print(zone)
-    for con in graph.connections:
-        print(con)
-    paths = find_all_paths(graph, graph.start, graph.end)
-    for p in paths:
-        print("Path:", p)
-
-    path = dijkstra(graph, graph.start, graph.end)
-    print("Path found:", path)
-
+    if len(sys.argv) != 2:
+        print("Usage: python3 main.py <map_file>")
+        sys.exit(1)
+    graph = parse_file(sys.argv[1])
     sim = Simulation(graph)
     sim.assign_paths()
-    turns = sim.loop_turn()
+    sim.loop_turn()
     for line in sim.mov_history:
         print(line)
     print(f"Total turns: {sim.current_turn}")

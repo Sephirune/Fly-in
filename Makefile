@@ -1,15 +1,12 @@
 PYTHON      = $(VENV)/bin/python
 PIP         = $(VENV)/bin/pip
-MAIN        = a_maze_ing.py
-CONFIG      = config.txt
+MAIN        = main.py
 VENV        = .venv
 
 .PHONY: install run debug lint lint-strict venv clean
 
 install: venv
 	$(PIP) install --upgrade pip
-	$(PIP) install mlx
-	# or: $(PIP) install -r requirements.txt
 
 run: venv
 	$(PYTHON) $(MAIN) $(CONFIG)
