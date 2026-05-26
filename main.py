@@ -21,7 +21,8 @@ try:
     sim = Simulation(graph)
     sim.assign_paths()
     turns = sim.loop_turn()
-    print(f"turns simulated: {turns}")
-    print("movement history:", sim.mov_history)
+    for line in sim.mov_history:
+        print(line)
+    print(f"Total turns: {sim.current_turn}")
 except ParserError as e:
     print(f"Error: {e}")

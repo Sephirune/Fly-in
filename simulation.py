@@ -1,7 +1,7 @@
 from drone import Drone
 from graph import Graph
 from pathfinding import find_all_paths, dijkstra
-
+from color import Colors
 
 class Simulation:
     def __init__(self, graph: Graph) -> None:
@@ -52,6 +52,10 @@ class Simulation:
         if next_zone is None:
             return False
 
+        if not next_zone.is_end:
+            if zone_occupancy.get(next_zone_name, 0) >= next_zone.max_drones:
+                return False
+
         if zone_occupancy.get(next_zone_name, 0) >= next_zone.max_drones:
             return False
 
@@ -69,11 +73,15 @@ class Simulation:
         """Simulates a turn"""
         movements: list[str] = []
         zone_occupancy: dict[str, int] = {
-            zone_name: sum(1 for d in self.drones if d.current_zone == zone_name)
+            zone_name: sum(
+                1 for d in self.drones
+                if d.current_zone == zone_name
+                and not d.has_ended  # excluir drones que ya llegaron
+                and not self.graph.zones[zone_name].is_start
+            )
             for zone_name in self.graph.zones
         }
         connection_usage: dict[tuple[str, str], int] = {}
-
         for drone in self.drones:
             if drone.has_ended:
                 continue
@@ -91,7 +99,9 @@ class Simulation:
                 connection_usage[connection_key] = connection_usage.get(connection_key, 0) + 1
 
         self.current_turn += 1
-        self.mov_history.extend(movements)
+        drone_str = Colors.drone_color(drone.identifier)
+        zone_str = Colors.color_output(self.graph.get_zone(drone.current_zone))
+        movements.append(f"{drone_str}-{zone_str}")
         return movements
 
     def loop_turn(self) -> int:
