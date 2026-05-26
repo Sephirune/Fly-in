@@ -8,7 +8,7 @@ def pase_drone(line: str, number: int) -> int:
     """Parse the nb of drones"""
     parsed = line.strip()
     if not parsed.startswith("nb_drones"):
-        raise ParserError(f"Invalid line format in line: {number}. Input must be 'nb_drones:', gor '{parsed}'")
+        raise ParserError(f"Invalid line format in line: {number}. Input must be 'nb_drones:', got '{parsed}'")
     try:
         value = int(parsed.split(":", 1)[1].strip())
     except ValueError:
@@ -142,13 +142,22 @@ def parse_file(file: str) -> Graph:
             lines = f.readlines()
     except OSError:
         raise ParserError(f"Error opening file '{file}'.")
-
-    if not lines:
+    
+    drone_line = None
+    drone_line_nb = 0
+    for i, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if stripped and not stripped.startswith("#"):
+            drone_line = stripped
+            drone_line_nb = i
+            break
+    
+    if drone_line is None:
         raise ParserError("Error: File is empty.")
 
-    graph = Graph(pase_drone(lines[0], 1))
+    graph = Graph(pase_drone(drone_line, drone_line_nb))
 
-    for number, line in enumerate(lines[1:], start=2):
+    for number, line in enumerate(lines[drone_line_nb:], start=drone_line_nb + 1):
         stripped = line.strip()
 
         if not stripped or stripped.startswith("#"):
