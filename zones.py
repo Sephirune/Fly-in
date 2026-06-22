@@ -2,7 +2,8 @@ from typing import Optional
 
 
 class ZoneType:
-    """Valid types for zone class"""
+    """Valid types for zone class."""
+
     NORMAL = "normal"
     BLOCKED = "blocked"
     RESTRICTED = "restricted"
@@ -10,19 +11,31 @@ class ZoneType:
 
 
 class Zone:
-    """Class that represents a zone in the drone pathing network"""
+    """Class that represents a zone in the drone pathing network."""
+
     def __init__(
             self,
             name: str,
             x: int,
             y: int,
-            zone_type: ZoneType = ZoneType.NORMAL,
+            zone_type: str = ZoneType.NORMAL,
             color: Optional[str] = None,
             max_drones: int = 1,
             is_start: bool = False,
             is_end: bool = False,
     ) -> None:
-        """Init the zone parameters"""
+        """Initialize a Zone.
+
+        Args:
+            name: Unique zone identifier.
+            x: X coordinate.
+            y: Y coordinate.
+            zone_type: Type of zone (normal, blocked, restricted, priority).
+            color: Optional color for visual representation.
+            max_drones: Maximum drones allowed simultaneously.
+            is_start: Whether this is the start hub.
+            is_end: Whether this is the end hub.
+        """
         self.name = name
         self.x = x
         self.y = y

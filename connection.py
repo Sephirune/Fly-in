@@ -1,5 +1,4 @@
 from typing import Optional
-from zones import Zone
 from parse_error import ParserError
 
 

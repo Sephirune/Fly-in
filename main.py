@@ -13,6 +13,6 @@ try:
     sim.loop_turn()
     for line in sim.mov_history:
         print(line)
-    print(f"Total turns: {sim.current_turn}")
+    print(f"Total turns: {len(sim.mov_history)}")
 except ParserError as e:
     print(f"Error: {e}")

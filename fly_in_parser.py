@@ -5,21 +5,50 @@ from parse_error import ParserError
 
 
 def pase_drone(line: str, number: int) -> int:
-    """Parse the nb of drones"""
+    """Parse the nb_drones line.
+
+    Args:
+        line: The raw line string.
+        number: Line number for error reporting.
+
+    Returns:
+        The number of drones as a positive integer.
+
+    Raises:
+        ParserError: If format is invalid or value is not a positive integer.
+    """
     parsed = line.strip()
     if not parsed.startswith("nb_drones"):
-        raise ParserError(f"Invalid line format in line: {number}. Input must be 'nb_drones:', got '{parsed}'")
+        raise ParserError(
+            f"Invalid line format in line: {number}. "
+            f"Input must be 'nb_drones:', got '{parsed}'"
+        )
     try:
         value = int(parsed.split(":", 1)[1].strip())
     except ValueError:
-        raise ParserError(f"Line {number}: nb_drones must be a positive integer")
+        raise ParserError(
+            f"Line {number}: nb_drones must be a positive integer"
+        )
     if value <= 0:
-        raise ParserError(f"Line {number}: nb_drones must be a positive integer")
+        raise ParserError(
+            f"Line {number}: nb_drones must be a positive integer"
+        )
     return value
 
 
 def parse_metadata(metadata: str, number: int) -> dict[str, str]:
-    """Parse metadata input"""
+    """Parse a metadata block into a dictionary.
+
+    Args:
+        metadata: The metadata string enclosed in brackets.
+        number: Line number for error reporting.
+
+    Returns:
+        A dictionary of key-value pairs.
+
+    Raises:
+        ParserError: If the metadata format is invalid.
+    """
     meta: dict[str, str] = {}
     data = metadata.strip("[]").strip()
     try:
@@ -28,12 +57,25 @@ def parse_metadata(metadata: str, number: int) -> dict[str, str]:
                 j, k = i.split("=", 1)
                 meta[j.strip()] = k.strip()
     except Exception:
-        raise ParserError(f"Invalid metadata input '{metadata}' in line: {number}")
+        raise ParserError(
+            f"Invalid metadata input '{metadata}' in line: {number}"
+        )
     return meta
 
 
 def parse_zone(line: str, number: int) -> Zone:
-    """Parse zone line and return Zone object"""
+    """Parse a zone line into a Zone object.
+
+    Args:
+        line: The raw line string.
+        number: Line number for error reporting.
+
+    Returns:
+        A Zone object with all its attributes.
+
+    Raises:
+        ParserError: If the format or values are invalid.
+    """
     parsed = line.strip()
     if ":" not in parsed:
         raise ParserError(f"Line {number} missing ':'")
@@ -48,18 +90,18 @@ def parse_zone(line: str, number: int) -> Zone:
     if "[" in zone_info:
         if "]" not in zone_info:
             raise ParserError(f"Invalid metadata input in line: {number}")
-        start = zone_info.index("[") # index() returns the first ocurrence of an element
+        start = zone_info.index("[")
         meta_info = zone_info[start:]
         zone_info = zone_info[:start].strip()
         metadata = parse_metadata(meta_info, number)
 
     parameters = zone_info.split()
-    name, xstr, ystr = parameters
-    if "-" in name or " " in name:
-        raise ParserError("Error: zone names can't contain dashes or spaces.")
-
     if len(parameters) != 3:
         raise ParserError("Invalid parameters. Format must be: name (x) (y)")
+    name, xstr, ystr = parameters
+
+    if "-" in name or " " in name:
+        raise ParserError("Error: zone names can't contain dashes or spaces.")
 
     try:
         x = int(xstr)
@@ -77,6 +119,11 @@ def parse_zone(line: str, number: int) -> Zone:
         raise ParserError("Error. max_drones must be a positive integer.")
 
     zone_type_str = metadata.get("zone", "normal")
+    valid_types = {"normal", "blocked", "restricted", "priority"}
+    if zone_type_str not in valid_types:
+        raise ParserError(
+            f"Line {number}: invalid zone type '{zone_type_str}'"
+        )
 
     return Zone(
         name=name,
@@ -87,20 +134,31 @@ def parse_zone(line: str, number: int) -> Zone:
         max_drones=max_drones,
         is_start=(zone_type == "start_hub"),
         is_end=(zone_type == "end_hub")
-        )
+    )
 
 
 def parse_connection(line: str, number: int, graph: Graph) -> None:
-    """Parse a connection line and add it to the graph."""
+    """Parse a connection line and add it to the graph.
+
+    Args:
+        line: The raw line string.
+        number: Line number for error reporting.
+        graph: The graph to add the connection to.
+
+    Raises:
+        ParserError: If the format is invalid or zones don't exist.
+    """
     parsed = line.strip()
     if ":" not in parsed:
-        raise ParserError(f"Line {number}: missing ':' in connection definition")
+        raise ParserError(
+            f"Line {number}: missing ':' in connection definition"
+        )
     connection_type, connection_info = parsed.split(":", 1)
     connection_type = connection_type.strip()
     connection_info = connection_info.strip()
 
     if connection_type != "connection":
-        raise ParserError("Invalid zone input")
+        raise ParserError("Invalid connection input")
 
     metadata: dict[str, str] = {}
     if "[" in connection_info:
@@ -112,21 +170,27 @@ def parse_connection(line: str, number: int, graph: Graph) -> None:
         metadata = parse_metadata(meta_info, number)
 
     parameters = connection_info.split("-")
-    name1, name2 = parameters[0].strip(), parameters[1].strip()
     if len(parameters) != 2:
-        raise ParserError(f"Error. Line: {number} must have exactly two zones.")
+        raise ParserError(
+            f"Error. Line: {number} must have exactly two zones."
+        )
+    name1, name2 = parameters[0].strip(), parameters[1].strip()
 
     if graph.get_zone(name1) is None:
-        raise ParserError(f"Error: line: {number} is an unkown zone.")
+        raise ParserError(f"Error: line {number}: unknown zone '{name1}'.")
     if graph.get_zone(name2) is None:
-        raise ParserError(f"Error: line: {number} is an unkown zone.")
+        raise ParserError(f"Error: line {number}: unknown zone '{name2}'.")
 
     try:
         max_link_capacity = int(metadata.get("max_link_capacity", "1"))
-    except ParserError:
-        raise ParserError(f"Error: line {number} must be a positive integer.")
+    except ValueError:
+        raise ParserError(
+            f"Error: line {number} max_link_capacity must be a positive integer."
+        )
     if max_link_capacity <= 0:
-        raise ParserError(f"Error: line {number} must be a positive integer.")
+        raise ParserError(
+            f"Error: line {number} must be a positive integer."
+        )
 
     graph.add_connection(Connection(
         name1=name1,
@@ -136,13 +200,23 @@ def parse_connection(line: str, number: int, graph: Graph) -> None:
 
 
 def parse_file(file: str) -> Graph:
-    """Parse input file and return a Graph object."""
+    """Parse an input file and return a Graph object.
+
+    Args:
+        file: Path to the input file.
+
+    Returns:
+        A fully constructed Graph object.
+
+    Raises:
+        ParserError: If the file format is invalid.
+    """
     try:
         with open(file, "r") as f:
             lines = f.readlines()
     except OSError:
         raise ParserError(f"Error opening file '{file}'.")
-    
+
     drone_line = None
     drone_line_nb = 0
     for i, line in enumerate(lines, start=1):
@@ -151,7 +225,7 @@ def parse_file(file: str) -> Graph:
             drone_line = stripped
             drone_line_nb = i
             break
-    
+
     if drone_line is None:
         raise ParserError("Error: File is empty.")
 
