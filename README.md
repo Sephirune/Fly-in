@@ -106,7 +106,7 @@ Paths are computed once at the start via `assign_paths` and cached in each `Dron
 Results obtained on all provided maps:
 
 | Map | Drones | Result | Target |
-|-----|--------|--------|--------|--------|
+|-----|--------|--------|--------|
 | easy_01 — Linear path | 2 | 3 turns | ≤ 6 |
 | easy_02 — Simple fork | 4 | 3 turns | ≤ 6 |
 | easy_03 — Basic capacity | 4 | 3 turns | ≤ 8 |
