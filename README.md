@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by aarogarc.*
+*This project has been created as part of the 42 curriculum by <aarogarc>.*
 
 # Fly-in
 
@@ -89,6 +89,7 @@ The simulation runs turn by turn. Each turn:
 - Each drone checks if it can move (`validate_movement`) — respecting `max_drones` per zone and `max_link_capacity` per connection
 - Drones that move free up their current zone for others in the same turn
 - Start and end zones have no occupancy restrictions
+- Restricted zones require 2 turns to enter — the drone occupies the connection during transit and the output shows the connection name instead of the zone name
 
 ### Complexity
 
@@ -99,6 +100,23 @@ The simulation runs turn by turn. Each turn:
 ### Caching
 
 Paths are computed once at the start via `assign_paths` and cached in each `Drone` object. No recalculation occurs during simulation.
+
+## Performance Benchmarks
+
+Results obtained on all provided maps:
+
+| Map | Drones | Result | Target | Status |
+|-----|--------|--------|--------|--------|
+| easy_01 — Linear path | 2 | 3 turns | ≤ 6 |
+| easy_02 — Simple fork | 4 | 3 turns | ≤ 6 |
+| easy_03 — Basic capacity | 4 | 3 turns | ≤ 8 |
+| medium_01 — Dead end trap | 5 | 4 turns | ≤ 15 | 
+| medium_02 — Circular loop | 6 | 8 turns | ≤ 20 |
+| medium_03 — Priority puzzle | 5 | 6 turns | ≤ 12 |
+| hard_01 — Maze nightmare | 8 | 8 turns | ≤ 45 |
+| hard_02 — Capacity hell | 12 | 7 turns | ≤ 60 |
+| hard_03 — Ultimate challenge | 15 | 20 turns | ≤ 35 |
+| challenger — The Impossible Dream | 25 | 33 turns | ≤ 45 |
 
 ## Visual Representation
 

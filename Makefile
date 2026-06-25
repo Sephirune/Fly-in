@@ -14,10 +14,9 @@ run: venv
 debug: venv
 	$(PYTHON) -m pdb $(MAIN) $(MAP)
 
-lint: venv
-	$(PIP) install flake8 mypy
-	$(VENV)/bin/flake8 .
-	$(VENV)/bin/mypy . \
+lint:
+	uv run flake8 . --exclude=.venv
+	uv run mypy . \
 		--warn-return-any \
 		--warn-unused-ignores \
 		--ignore-missing-imports \

@@ -2,18 +2,13 @@ from drone import Drone
 from graph import Graph
 from pathfinding import find_all_paths
 from color import Colors
-from zones import Zone
 
 
 class Simulation:
     """Manages the turn-by-turn drone routing simulation."""
 
     def __init__(self, graph: Graph) -> None:
-        """Initialize the Simulation.
-
-        Args:
-            graph: The drone network graph.
-        """
+        """Initialize the Simulation."""
         self.graph = graph
         self.drones: list[Drone] = []
         self.current_turn: int = 0
@@ -21,15 +16,7 @@ class Simulation:
 
     @staticmethod
     def path_cost(graph: Graph, path: list[str]) -> float:
-        """Calculate the total movement cost of a path.
-
-        Args:
-            graph: The drone network graph.
-            path: List of zone names representing the path.
-
-        Returns:
-            Total movement cost as a float.
-        """
+        """Calculate the total movement cost of a path."""
         costs: dict[str, float] = {
             "normal": 1,
             "restricted": 2,
@@ -65,16 +52,7 @@ class Simulation:
         zone_occupancy: dict[str, int],
         connection_usage: dict[tuple[str, str], int]
     ) -> bool:
-        """Check if a drone can move to its next zone.
-
-        Args:
-            drone: The drone to check.
-            zone_occupancy: Current drone count per zone.
-            connection_usage: Current drone count per connection.
-
-        Returns:
-            True if the drone can move, False otherwise.
-        """
+        """Check if a drone can move to its next zone."""
         next_zone_name = drone.get_next_zone
         if next_zone_name is None:
             return False
@@ -106,11 +84,7 @@ class Simulation:
         return True
 
     def simulate_turn(self) -> list[str]:
-        """Execute one simulation turn.
-
-        Returns:
-            List of movement strings for this turn.
-        """
+        """Execute one simulation turn."""
         movements: list[str] = []
         zone_occupancy: dict[str, int] = {
             zone_name: sum(
@@ -132,27 +106,26 @@ class Simulation:
                 if next_zone_name is None:
                     continue
 
-                connection_key: tuple[str, str] = (
-                    min(current_zone_name, next_zone_name),
-                    max(current_zone_name, next_zone_name)
+                next_zone = self.graph.get_zone(next_zone_name)
+                next_is_restricted = (
+                    next_zone is not None and next_zone.zone_type ==
+                    "restricted"
                 )
-                drone.move_drone()
+                drone.move_drone(next_is_restricted=next_is_restricted)
 
                 drone_str = Colors.drone_color(drone.identifier)
-                current_zone: Zone | None = self.graph.get_zone(
-                    drone.current_zone
-                )
-                if current_zone is not None:
-                    zone_str = Colors.color_output(current_zone)
-                    movements.append(f"{drone_str}-{zone_str}")
-
-                zone_occupancy[current_zone_name] -= 1
-                zone_occupancy[drone.current_zone] = (
-                    zone_occupancy.get(drone.current_zone, 0) + 1
-                )
-                connection_usage[connection_key] = (
-                    connection_usage.get(connection_key, 0) + 1
-                )
+                if drone.in_transit:
+                    conn_name = (
+                        f"{min(current_zone_name, next_zone_name)}"
+                        f"_{max(current_zone_name, next_zone_name)}"
+                    )
+                    movements.append(f"{drone_str}-{conn_name}")
+                else:
+                    # drone se movió normalmente - mostrar zona actual
+                    current_zone = self.graph.get_zone(drone.current_zone)
+                    if current_zone is not None:
+                        zone_str = Colors.color_output(current_zone)
+                        movements.append(f"{drone_str}-{zone_str}")
 
         self.current_turn += 1
         if movements:
@@ -160,11 +133,7 @@ class Simulation:
         return movements
 
     def loop_turn(self) -> int:
-        """Run turns until all drones have arrived.
-
-        Returns:
-            Total number of turns with movements.
-        """
+        """Run turns until all drones have arrived."""
         max_turns = len(self.drones) * len(self.graph.zones) * 10
         while any(not drone.has_ended for drone in self.drones):
             self.simulate_turn()

@@ -5,14 +5,11 @@ from parse_error import ParserError
 
 
 class Graph:
-    """Represents the drone flying network as a map of zones and connections."""
+    """Represents the drone flying network as a map of zones and
+    connections."""
 
     def __init__(self, nb_drones: int) -> None:
-        """Initialize an empty Graph.
-
-        Args:
-            nb_drones: Number of drones to route.
-        """
+        """Initialize an empty Graph."""
         self.nb_drones = nb_drones
         self.zones: dict[str, Zone] = {}
         self.connections: list[Connection] = []
@@ -22,25 +19,11 @@ class Graph:
         self.adjacency: dict[str, list[Connection]] = {}
 
     def get_zone(self, name: str) -> Optional[Zone]:
-        """Get a zone by name.
-
-        Args:
-            name: The zone name to look up.
-
-        Returns:
-            The Zone object or None if not found.
-        """
+        """Get a zone by name."""
         return self.zones.get(name)
 
     def add_zone(self, zone: Zone) -> None:
-        """Add a zone to the graph.
-
-        Args:
-            zone: The zone to add.
-
-        Raises:
-            ParserError: If zone already exists or start/end is duplicated.
-        """
+        """Add a zone to the graph."""
         if zone.name in self.zones:
             raise ParserError("Error: already existing zone detected.")
         self.zones[zone.name] = zone
@@ -57,14 +40,7 @@ class Graph:
         self.adjacency[zone.name] = []
 
     def add_connection(self, connection: Connection) -> None:
-        """Add a connection to the graph.
-
-        Args:
-            connection: The connection to add.
-
-        Raises:
-            ParserError: If zones don't exist or connection is duplicated.
-        """
+        """Add a connection to the graph."""
         if (connection.name1 not in self.zones) or (
                 connection.name2 not in self.zones):
             raise ParserError("Error: Non existing zone detected.")
@@ -88,40 +64,21 @@ class Graph:
         self.adjacency[connection.name2].append(connection)
 
     def get_neighbors(self, name: str) -> list[str]:
-        """Get adjacent zone names for a given zone.
-
-        Args:
-            name: The zone name to get neighbors for.
-
-        Returns:
-            List of neighboring zone names.
-        """
+        """Get adjacent zone names for a given zone."""
         neighbor: list[str] = []
         for i in self.adjacency[name]:
             neighbor.append(i.return_other(name))
         return neighbor
 
     def get_connection(self, name1: str, name2: str) -> Optional[Connection]:
-        """Get the connection between two zones.
-
-        Args:
-            name1: First zone name.
-            name2: Second zone name.
-
-        Returns:
-            The Connection object or None if not found.
-        """
+        """Get the connection between two zones."""
         for i in self.adjacency[name1]:
             if i.valid_name(name2):
                 return i
         return None
 
     def validate(self) -> None:
-        """Validate that the graph has a start and end zone.
-
-        Raises:
-            ParserError: If start or end zone is missing.
-        """
+        """Validate that the graph has a start and end zone."""
         if self.start is None:
             raise ParserError("Error: No start defined.")
         if self.end is None:

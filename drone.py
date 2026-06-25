@@ -5,11 +5,12 @@ class Drone:
     def __init__(
             self,
             path_assigned: list[str],
-            identifier: str
+            identifier: str,
             ):
         self.path_index = 0
         self.path_assigned = path_assigned
         self.has_ended = False
+        self.in_transit = False
         self.identifier = identifier
 
     @property
@@ -24,9 +25,19 @@ class Drone:
             return self.path_assigned[self.path_index + 1]
         return None
 
-    def move_drone(self) -> None:
+    def move_drone(self, next_is_restricted: bool = False) -> None:
         """Move the drone one step in its path"""
-        if not self.has_ended and self.get_next_zone is not None:
+        if self.has_ended:
+            return
+
+        if self.in_transit:
+            self.in_transit = False
+            self.path_index += 1
+
+        elif next_is_restricted:
+            self.in_transit = True
+
+        else:
             self.path_index += 1
 
         if self.path_index == len(self.path_assigned) - 1:

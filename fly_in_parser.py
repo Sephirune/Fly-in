@@ -4,19 +4,8 @@ from connection import Connection
 from parse_error import ParserError
 
 
-def pase_drone(line: str, number: int) -> int:
-    """Parse the nb_drones line.
-
-    Args:
-        line: The raw line string.
-        number: Line number for error reporting.
-
-    Returns:
-        The number of drones as a positive integer.
-
-    Raises:
-        ParserError: If format is invalid or value is not a positive integer.
-    """
+def parse_drone(line: str, number: int) -> int:
+    """Parse the nb_drones line."""
     parsed = line.strip()
     if not parsed.startswith("nb_drones"):
         raise ParserError(
@@ -37,18 +26,7 @@ def pase_drone(line: str, number: int) -> int:
 
 
 def parse_metadata(metadata: str, number: int) -> dict[str, str]:
-    """Parse a metadata block into a dictionary.
-
-    Args:
-        metadata: The metadata string enclosed in brackets.
-        number: Line number for error reporting.
-
-    Returns:
-        A dictionary of key-value pairs.
-
-    Raises:
-        ParserError: If the metadata format is invalid.
-    """
+    """Parse a metadata block into a dictionary."""
     meta: dict[str, str] = {}
     data = metadata.strip("[]").strip()
     try:
@@ -64,18 +42,7 @@ def parse_metadata(metadata: str, number: int) -> dict[str, str]:
 
 
 def parse_zone(line: str, number: int) -> Zone:
-    """Parse a zone line into a Zone object.
-
-    Args:
-        line: The raw line string.
-        number: Line number for error reporting.
-
-    Returns:
-        A Zone object with all its attributes.
-
-    Raises:
-        ParserError: If the format or values are invalid.
-    """
+    """Parse a zone line into a Zone object."""
     parsed = line.strip()
     if ":" not in parsed:
         raise ParserError(f"Line {number} missing ':'")
@@ -138,16 +105,7 @@ def parse_zone(line: str, number: int) -> Zone:
 
 
 def parse_connection(line: str, number: int, graph: Graph) -> None:
-    """Parse a connection line and add it to the graph.
-
-    Args:
-        line: The raw line string.
-        number: Line number for error reporting.
-        graph: The graph to add the connection to.
-
-    Raises:
-        ParserError: If the format is invalid or zones don't exist.
-    """
+    """Parse a connection line and add it to the graph."""
     parsed = line.strip()
     if ":" not in parsed:
         raise ParserError(
@@ -185,7 +143,8 @@ def parse_connection(line: str, number: int, graph: Graph) -> None:
         max_link_capacity = int(metadata.get("max_link_capacity", "1"))
     except ValueError:
         raise ParserError(
-            f"Error: line {number} max_link_capacity must be a positive integer."
+            f"Error: line {number} max_link_capacity must be a positive"
+            "integer."
         )
     if max_link_capacity <= 0:
         raise ParserError(
@@ -200,17 +159,7 @@ def parse_connection(line: str, number: int, graph: Graph) -> None:
 
 
 def parse_file(file: str) -> Graph:
-    """Parse an input file and return a Graph object.
-
-    Args:
-        file: Path to the input file.
-
-    Returns:
-        A fully constructed Graph object.
-
-    Raises:
-        ParserError: If the file format is invalid.
-    """
+    """Parse an input file and return a Graph object."""
     try:
         with open(file, "r") as f:
             lines = f.readlines()
@@ -229,9 +178,10 @@ def parse_file(file: str) -> Graph:
     if drone_line is None:
         raise ParserError("Error: File is empty.")
 
-    graph = Graph(pase_drone(drone_line, drone_line_nb))
+    graph = Graph(parse_drone(drone_line, drone_line_nb))
 
-    for number, line in enumerate(lines[drone_line_nb:], start=drone_line_nb + 1):
+    for number, line in enumerate(lines[drone_line_nb:],
+                                  start=drone_line_nb + 1):
         stripped = line.strip()
 
         if not stripped or stripped.startswith("#"):

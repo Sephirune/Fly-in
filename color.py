@@ -16,27 +16,12 @@ class Colors:
 
     @staticmethod
     def colorize(text: str, color: str) -> str:
-        """Wrap text with a color code and reset.
-
-        Args:
-            text: The text to colorize.
-            color: The ANSI color code.
-
-        Returns:
-            Colorized string.
-        """
+        """Wrap text with a color code and reset."""
         return f"{color}{text}{Colors.RESET}"
 
     @staticmethod
     def color_output(zone: Zone) -> str:
-        """Colorize a zone name based on its type.
-
-        Args:
-            zone: The zone to colorize.
-
-        Returns:
-            Colorized zone name string.
-        """
+        """Colorize a zone name based on its type."""
         zone_types: dict[str, str] = {
             "normal": Colors.WHITE,
             "priority": Colors.GREEN,
@@ -48,12 +33,5 @@ class Colors:
 
     @staticmethod
     def drone_color(drone_id: str) -> str:
-        """Colorize a drone identifier.
-
-        Args:
-            drone_id: The drone ID e.g. 'D1'.
-
-        Returns:
-            Colorized drone identifier.
-        """
+        """Colorize a drone identifier."""
         return Colors.colorize(drone_id, Colors.CYAN)
