@@ -38,8 +38,6 @@ class Simulation:
         if start is None or end is None:
             raise ParserError("graph has no start or end zone.")
 
-        # Dijkstra runs in O((V + E) log V): it rejects unreachable maps
-        # quickly, before the (potentially exponential) DFS enumeration.
         if not dijkstra(self.graph, start, end):
             raise ParserError("no valid path from start to end.")
 
@@ -128,7 +126,6 @@ class Simulation:
                     )
                     movements.append(f"{drone_str}-{conn_name}")
                 else:
-                    # drone se movió normalmente - mostrar zona actual
                     current_zone = self.graph.get_zone(drone.current_zone)
                     if current_zone is not None:
                         zone_str = Colors.color_output(current_zone)
