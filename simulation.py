@@ -1,7 +1,9 @@
 from drone import Drone
 from graph import Graph
-from pathfinding import find_all_paths
+from pathfinding import find_all_paths, dijkstra
 from color import Colors
+from parse_error import ParserError
+from zones import ZONE_COSTS
 
 
 class Simulation:
@@ -17,32 +19,37 @@ class Simulation:
     @staticmethod
     def path_cost(graph: Graph, path: list[str]) -> float:
         """Calculate the total movement cost of a path."""
-        costs: dict[str, float] = {
-            "normal": 1,
-            "restricted": 2,
-            "priority": 1,
-            "blocked": float('inf'),
-        }
         total_cost: float = 0
         for zone_name in path[1:]:
             zone = graph.get_zone(zone_name)
             if zone is not None:
-                total_cost += costs.get(zone.zone_type, 1)
+                total_cost += ZONE_COSTS.get(zone.zone_type, 1)
         return total_cost
 
     def assign_paths(self) -> None:
-        """Assign paths to all drones, prioritizing lower cost routes."""
-        all_paths = find_all_paths(
-            self.graph,
-            self.graph.start,  # type: ignore[arg-type]
-            self.graph.end  # type: ignore[arg-type]
-        )
-        sorted_costs = sorted(
+        """Assign paths to all drones, prioritizing lower cost routes.
+
+        Raises:
+            ParserError: If the graph has no start/end or no valid path
+                connects them.
+        """
+        start = self.graph.start
+        end = self.graph.end
+        if start is None or end is None:
+            raise ParserError("graph has no start or end zone.")
+
+        # Dijkstra runs in O((V + E) log V): it rejects unreachable maps
+        # quickly, before the (potentially exponential) DFS enumeration.
+        if not dijkstra(self.graph, start, end):
+            raise ParserError("no valid path from start to end.")
+
+        all_paths = find_all_paths(self.graph, start, end)
+        sorted_paths = sorted(
             all_paths,
             key=lambda p: self.path_cost(self.graph, p)
         )
         for i in range(self.graph.nb_drones):
-            path = sorted_costs[i % len(sorted_costs)]
+            path = sorted_paths[i % len(sorted_paths)]
             drone = Drone(path_assigned=path, identifier=f"D{i + 1}")
             self.drones.append(drone)
 

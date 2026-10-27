@@ -10,6 +10,15 @@ class ZoneType:
     PRIORITY = "priority"
 
 
+# Movement cost in turns to enter a zone of each type (single source of truth)
+ZONE_COSTS: dict[str, float] = {
+    ZoneType.NORMAL: 1,
+    ZoneType.RESTRICTED: 2,
+    ZoneType.PRIORITY: 1,
+    ZoneType.BLOCKED: float("inf"),
+}
+
+
 class Zone:
     """Class that represents a zone in the drone pathing network."""
 

@@ -1,5 +1,5 @@
 from graph import Graph
-from zones import Zone
+from zones import Zone, ZONE_COSTS
 import heapq
 from typing import Optional
 
@@ -80,12 +80,6 @@ def dijkstra(graph: Graph, start: Zone, end: Zone) -> list[str]:
     Returns:
         List of zone names representing the shortest path, or empty list.
     """
-    costs: dict[str, float] = {
-        "normal": 1,
-        "restricted": 2,
-        "priority": 0,
-        "blocked": float('inf'),
-    }
     zone_cost: dict[str, float] = {start.name: 0}
     previous: dict[str, str] = {}
     queue: list[tuple[float, str]] = []
@@ -102,7 +96,7 @@ def dijkstra(graph: Graph, start: Zone, end: Zone) -> list[str]:
             neighbor_zone = graph.get_zone(neighbor)
             if neighbor_zone is None:
                 continue
-            move_cost = costs.get(neighbor_zone.zone_type, float('inf'))
+            move_cost = ZONE_COSTS.get(neighbor_zone.zone_type, float('inf'))
             if move_cost == float('inf'):
                 continue
 

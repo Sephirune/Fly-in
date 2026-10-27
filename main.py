@@ -4,7 +4,8 @@ from simulation import Simulation
 import sys
 
 
-def main():
+def main() -> None:
+    """Entry point for the Fly-in drone routing simulation."""
     try:
         if len(sys.argv) != 2:
             print("Usage: python3 main.py <map_file>")

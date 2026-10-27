@@ -6,7 +6,7 @@
 
 Fly-in is a drone routing simulation system. The goal is to move a fleet of drones from a start zone to an end zone through a network of connected zones, minimizing the total number of simulation turns.
 
-The system parses a map file describing the zone network, finds all valid paths using DFS, selects optimal routes using Dijkstra's algorithm, and simulates turn-by-turn drone movement while respecting all capacity and movement constraints.
+The system parses a map file describing the zone network, checks reachability with Dijkstra's algorithm, enumerates all valid paths using DFS, distributes the drones across them by cost, and simulates turn-by-turn drone movement while respecting all capacity and movement constraints.
 
 ## Instructions
 
@@ -74,13 +74,15 @@ Zone types: `normal` (1 turn), `restricted` (2 turns), `priority` (1 turn, prefe
 
 ### Pathfinding
 
-**DFS (`find_all_paths`)** — finds all valid paths from start to end using depth-first search with backtracking. Blocked zones are excluded. This gives the full set of possible routes.
+**Dijkstra (`dijkstra`)** — computes the minimum-cost path from start to end with a min-heap priority queue (`heapq`), in O((V + E) log V). Costs come from a single table (`ZONE_COSTS` in `zones.py`) shared with the rest of the project. It is used as a fast feasibility check: if it finds no path, the program stops with a clear error before running the more expensive DFS.
 
-**Dijkstra (`dijkstra`)** — finds the single shortest path by accumulated movement cost. Uses a min-heap priority queue (`heapq`) for efficiency. Movement costs are determined by destination zone type.
+**DFS (`find_all_paths`)** — enumerates all valid paths from start to end using depth-first search with backtracking. Blocked zones are excluded. This gives the full set of routes that drones can be spread across.
 
 ### Path Assignment
 
-Paths are sorted by total cost. Drones are distributed cyclically across paths using modulo — cheaper paths receive more drones.
+All paths found by the DFS are sorted by total cost (`path_cost`, based on the same `ZONE_COSTS` table). Drones are then distributed cyclically across them using modulo — cheaper paths are filled first and receive more drones, which avoids sending every drone through a single bottleneck.
+
+If the map has no start/end or no path connects them, `assign_paths` raises a `ParserError` instead of crashing.
 
 ### Simulation
 
@@ -93,13 +95,13 @@ The simulation runs turn by turn. Each turn:
 
 ### Complexity
 
-- DFS path search: O(V + E) per path, exponential in worst case for all paths
 - Dijkstra: O((V + E) log V)
+- DFS path enumeration: exponential in the worst case (it lists every simple path)
 - Simulation per turn: O(D * Z) where D = drones, Z = zones
 
 ### Caching
 
-Paths are computed once at the start via `assign_paths` and cached in each `Drone` object. No recalculation occurs during simulation.
+Paths are computed once at the start via `assign_paths` and stored in each `Drone` object. No recalculation occurs during simulation.
 
 ## Performance Benchmarks
 
@@ -110,7 +112,7 @@ Results obtained on all provided maps:
 | easy_01 — Linear path | 2 | 3 turns | ≤ 6 |
 | easy_02 — Simple fork | 4 | 3 turns | ≤ 6 |
 | easy_03 — Basic capacity | 4 | 3 turns | ≤ 8 |
-| medium_01 — Dead end trap | 5 | 4 turns | ≤ 15 | 
+| medium_01 — Dead end trap | 5 | 4 turns | ≤ 15 |
 | medium_02 — Circular loop | 6 | 8 turns | ≤ 20 |
 | medium_03 — Priority puzzle | 5 | 6 turns | ≤ 12 |
 | hard_01 — Maze nightmare | 8 | 8 turns | ≤ 45 |
